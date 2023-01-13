@@ -5,11 +5,10 @@ const reg =
 
 // https://github.com/wytxer/nest-translate/blob/main/lib/baidu.service.ts
 // https://github.com/li-car-fei/electron-demo/blob/b7e14e9d585f44dfcaca8e93248cd33950557c88/src/renderer/module/Tran_config.js
-
 const config = {
-  appid: '20221110001445220', // 百度翻译appid
-  secret: 'A2NjltZ3dnUIhud_iaJk', // 百度翻译密钥
-  url: 'https://fanyi-api.baidu.com/api/trans/vip/translate' // 百度翻译api
+  appid: '20221110001445220',
+  secret: 'A2NjltZ3dnUIhud_iaJk',
+  url: 'https://fanyi-api.baidu.com/api/trans/vip/translate'
 }
 
 async function start(rawVtt) {
@@ -43,7 +42,11 @@ async function start(rawVtt) {
 
       return response.trans_result
     })
-    .catch((err) => console.error(err))
+    .catch((err) => {
+      console.log('----ERROR----')
+      console.error(err)
+      console.log('\r\n')
+    })
 
   if (!translated) return
 
