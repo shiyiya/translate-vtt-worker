@@ -46,22 +46,27 @@ async function start(rawVtt) {
     })
     .catch((err) => console.error(err))
 
-  let result = ''
-  vttDefinitions.reduce((pre, vttDef, i) => {
-    if (
-      vttDef.match(
-        /([0-9]{2}:)?([0-9]{2}:)?[0-9]{2}(.[0-9]{3})?( ?--> ?)([0-9]{2}:)?([0-9]{2}:)?[0-9]{2}(.[0-9]{3})?[\r\n]{1}.*/gi
-      )
-    ) {
-      const vttSegment = vttDef.split(/[\r\n]/i)
-      const time = vttSegment.shift()
+  const result = vttDefinitions.reduce(
+    (pre, vttDef, i) => {
+      if (
+        vttDef.match(
+          /([0-9]{2}:)?([0-9]{2}:)?[0-9]{2}(.[0-9]{3})?( ?--> ?)([0-9]{2}:)?([0-9]{2}:)?[0-9]{2}(.[0-9]{3})?[\r\n]{1}.*/gi
+        )
+      ) {
+        const vttSegment = vttDef.split(/[\r\n]/i)
+        const time = vttSegment.shift()
 
-      result += time + translated[i] + '\r\n'
-      console.log(translated[i])
-    }
+        return `${pre}${time}
+${translated[i]}
+`
+      }
 
-    return pre
-  }, '')
+      return pre
+    },
+    `WEBVTT
+
+`
+  )
 
   console.log(result)
 }
