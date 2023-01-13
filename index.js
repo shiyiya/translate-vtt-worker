@@ -17,17 +17,16 @@ async function start(rawVtt) {
   const transl = vttDefinitions
     .reduce((pre, vttDef) => {
       if (vttDef.match(reg)) {
-        const vttSegment = vttDef.split(/[\r\n]/i)
-        vttSegment.shift()
-        return `${pre}|${vttSegment.join('#')}`
+        const segment = vttDef.split(/[\r\n]/i)
+        return segment.shift(), `${pre}|${segment.join('#')}`
       }
       return pre
     }, '')
     .substring(1)
 
-  console.log('----翻译内容----')
+  console.log('--------')
   console.log(transl)
-  console.log('----翻译内容----')
+  console.log('\r\n')
 
   const { appid, salt = Date.now().toString(), secret, url } = config
   let translated = await fetch(
@@ -38,23 +37,21 @@ async function start(rawVtt) {
   )
     .then((response) => response.json())
     .then((response) => {
-      console.log('----返回----')
+      console.log('--------')
       console.log(response)
-      console.log('----返回----')
+      console.log('\r\n')
 
-      return response.data.translations[0].translatedText.split('&amp;')
+      return response.trans_result
     })
     .catch((err) => console.error(err))
 
+  if (!translated) return
+
   const result = vttDefinitions.reduce(
     (pre, vttDef, i) => {
-      if (
-        vttDef.match(
-          /([0-9]{2}:)?([0-9]{2}:)?[0-9]{2}(.[0-9]{3})?( ?--> ?)([0-9]{2}:)?([0-9]{2}:)?[0-9]{2}(.[0-9]{3})?[\r\n]{1}.*/gi
-        )
-      ) {
-        const vttSegment = vttDef.split(/[\r\n]/i)
-        const time = vttSegment.shift()
+      if (vttDef.match(reg)) {
+        const segment = vttDef.split(/[\r\n]/i)
+        const time = segment.shift()
 
         return `${pre}${time}
 ${translated[i]}
