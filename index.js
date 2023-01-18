@@ -1,4 +1,40 @@
-// var crypto = require('crypto')
+const cacheReg = '.*(srt|ass|vtt)(#|?|$).*'
+
+self.addEventListener('install', function (event) {
+  // event.waitUntil(
+  //   caches.open('subtitle').then(function (cache) {
+  //     return cache.addAll(cacheFiles)
+  //   })
+  // )
+})
+
+self.addEventListener('fetch', async (event) => {
+  if (/srt|ass|vtt(#|\?|$)/i.test(event.request.url)) {
+    const cache = await caches.open('subtitle')
+    const cached = await caches.match(event.request)
+
+    if (cached?.ok) {
+      return cached
+    } else {
+      cache.delete(event.request)
+    }
+
+    const resp = await fetch(event.request)
+      .then((response) => response.text())
+      .then(translate)
+      .then((resp) => {
+        return new Response(stringToArrayBuffer(resp))
+      })
+
+    if (resp.ok) cache.put(event.request, resp.clone())
+
+    event.respondWith(resp)
+
+    return true
+  }
+
+  return false
+})
 
 const reg =
   /([0-9]{2}:)?([0-9]{2}:)?[0-9]{2}(.[0-9]{3})?( ?--> ?)([0-9]{2}:)?([0-9]{2}:)?[0-9]{2}(.[0-9]{3})?[\r\n]{1}.*/gi
@@ -11,7 +47,7 @@ const config = {
   url: 'https://fanyi-api.baidu.com/api/trans/vip/translate'
 }
 
-async function start(rawVtt) {
+async function translate(rawVtt) {
   const vttDefinitions = rawVtt.split(/[\r\n][\r\n]/i)
   const transl = vttDefinitions
     .reduce((pre, vttDef) => {
@@ -66,7 +102,10 @@ async function start(rawVtt) {
         const segment = vttDef.split(/[\r\n]/i)
         const time = segment.shift()
         const translated = translatedArray[i - 1]
-        const segmentTranslated = translated.split('[*]').reduce(
+
+        if (!translated) return pre
+
+        const segmentTranslated = translated?.split('[*]').reduce(
           (pre, curr) =>
             pre == ''
               ? curr
@@ -89,13 +128,39 @@ ${segmentTranslated}
 
   console.log('----result----')
   console.log(result)
+  return result
 }
 
-start(`WEBVTT
+// start(`WEBVTT
 
-00:04.080 --> 00:06.080
-The world is awash in pain.
+// 00:04.080 --> 00:06.080
+// The world is awash in pain.
 
-00:06.420 --> 00:10.040
-Now, wars are fought between spies
-over information -`)
+// 00:06.420 --> 00:10.040
+// Now, wars are fought between spies
+// over information -`)
+
+function str2Blob(str) {
+  let l = str.length
+  const u8 = new Uint8Array(l)
+
+  while (l--) {
+    u8[l] = str.charCodeAt(l)
+  }
+  return new Blob([u8], { type: 'text/vtt' })
+}
+
+/**
+ *
+ * @param {string} str
+ * @returns
+ */
+function stringToArrayBuffer(str) {
+  let i = str.length
+  let buffer = new ArrayBuffer(i * 2)
+  let view = new Uint16Array(buffer)
+
+  while (i--) view[i] = str.charCodeAt(i)
+
+  return buffer
+}
