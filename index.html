@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <body>
+    <script>
+      if (navigator.serviceWorker) {
+        navigator.serviceWorker.register('index.js')
+      }
+
+      fetch('https://cc.zorores.com/20/2e/202eaab6dff289a5976399077449654e/eng-2.vtt')
+        .then((response) => response.arrayBuffer())
+        .then((it) => {
+          console.log(it, 'html')
+        })
+    </script>
+  </body>
+</html>
